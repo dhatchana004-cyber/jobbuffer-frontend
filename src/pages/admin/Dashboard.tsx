@@ -17,6 +17,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { formatCandidateName } from '../../utils/candidateHelper';
 
 const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4'];
 
@@ -90,7 +91,7 @@ export default function AdminDashboard() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `jobbuffer_admin_summary_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute('download', `jobuffer_admin_summary_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -307,10 +308,10 @@ export default function AdminDashboard() {
                 <div key={u.id} className="py-3 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-800 to-indigo-700 text-white font-bold text-xs flex items-center justify-center flex-shrink-0">
-                      {u.name ? u.name.slice(0, 2).toUpperCase() : 'US'}
+                      {formatCandidateName(u.name, u.email).slice(0, 2).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-gray-900 truncate">{u.name}</p>
+                      <p className="text-xs font-bold text-gray-900 truncate">{formatCandidateName(u.name, u.email)}</p>
                       <p className="text-[11px] text-gray-500 truncate">{u.email}</p>
                     </div>
                   </div>

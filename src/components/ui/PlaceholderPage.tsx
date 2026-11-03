@@ -8,7 +8,7 @@ export default function PlaceholderPage({ title }: { title: string }) {
       </div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">{title}</h2>
       <p className="text-gray-500 max-w-md mx-auto">
-        This module is currently under development. Check back soon for updates to this section of the Jobbuffer platform.
+        This module is currently under development. Check back soon for updates to this section of the JoBuffer platform.
       </p>
     </div>
   );

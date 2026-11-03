@@ -26,6 +26,7 @@ import {
   Bell
 } from 'lucide-react';
 import api from '../../services/api';
+import { formatCandidateName } from '../../utils/candidateHelper';
 
 interface Interview {
   id: string;
@@ -449,7 +450,7 @@ export default function RecruiterInterviews() {
                   <div className="flex items-center gap-3 text-xs">
                     <div className="flex items-center gap-1.5 text-gray-800 font-bold">
                       <User className="w-3.5 h-3.5 text-gray-400" />
-                      <span>{item.candidate.name}</span>
+                      <span>{formatCandidateName(item.candidate?.name, item.candidate?.email)}</span>
                     </div>
                     {item.job && (
                       <span className="text-gray-500 bg-gray-100 px-2 py-0.5 rounded text-[11px] font-medium">
@@ -815,7 +816,7 @@ export default function RecruiterInterviews() {
               <div>
                 <h3 className="text-base font-bold text-gray-900">Log Interview Outcome</h3>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Candidate: <span className="font-bold text-gray-800">{feedbackModalInterview.candidate.name}</span>
+                  Candidate: <span className="font-bold text-gray-800">{formatCandidateName(feedbackModalInterview.candidate?.name, feedbackModalInterview.candidate?.email)}</span>
                 </p>
               </div>
               <button

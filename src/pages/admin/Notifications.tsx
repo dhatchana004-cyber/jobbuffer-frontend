@@ -325,7 +325,7 @@ export default function Notifications() {
                 </label>
                 <input
                   type="email"
-                  placeholder="e.g. support@jobbuffer.com (Leave empty to use system default)"
+                  placeholder="e.g. support@jobuffer.com (Leave empty to use system default)"
                   value={adminReplyTo}
                   onChange={(e) => setAdminReplyTo(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-gray-300 text-xs text-gray-800 focus:ring-2 focus:ring-blue-500 outline-none"

@@ -110,8 +110,8 @@ export default function DashboardLayout({ role, navItems }: DashboardLayoutProps
         <div>
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
             <div className="flex items-center space-x-3 cursor-pointer" onClick={() => navigate(`/${role}/dashboard`)}>
-              <img src="/logo.png" alt="Jobbuffer Logo" className="w-10 h-10 object-contain" />
-              <img src="/logo-name.png" alt="Jobbuffer" className="h-6 object-contain" />
+              <img src="/logo.png" alt="JoBuffer Logo" className="w-10 h-10 object-contain" />
+              <img src="/logo-name.png" alt="JoBuffer" className="h-6 object-contain" />
             </div>
             <button className="lg:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg" onClick={() => setSidebarOpen(false)}>
               <X className="w-5 h-5" />

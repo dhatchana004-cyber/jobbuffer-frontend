@@ -109,8 +109,8 @@ export default function Login() {
         {/* Left Side - Form */}
         <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
           <div className="flex items-center space-x-3 mb-8">
-            <img src="/logo.png" alt="Jobbuffer Logo" className="w-16 h-16 object-contain" />
-            <img src="/logo-name.png" alt="Jobbuffer" className="h-8 object-contain" />
+            <img src="/logo.png" alt="JoBuffer Logo" className="w-16 h-16 object-contain" />
+            <img src="/logo-name.png" alt="JoBuffer" className="h-8 object-contain" />
           </div>
 
           <div className="mb-8">
@@ -193,7 +193,7 @@ export default function Login() {
               The modern way to hire top talent
             </h2>
             <p className="text-blue-100 text-lg">
-              Streamline your recruitment process, manage candidates, and make data-driven hiring decisions with Jobbuffer.
+              Streamline your recruitment process, manage candidates, and make data-driven hiring decisions with JoBuffer.
             </p>
           </div>
           
@@ -214,7 +214,7 @@ export default function Login() {
               </div>
             </div>
             <p className="text-blue-50 italic">
-              "Jobbuffer transformed how we hire. The pipeline management is incredibly intuitive."
+              "JoBuffer transformed how we hire. The pipeline management is incredibly intuitive."
             </p>
           </div>
         </div>

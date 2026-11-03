@@ -1,7 +1,27 @@
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+  const target = env.VITE_API_BASE_URL || 'https://api.jobuffer.com'
+
+  return {
+    plugins: [react()],
+    server: {
+      port: 5173,
+      proxy: {
+        '/api': {
+          target,
+          changeOrigin: true,
+          secure: false,
+        },
+        '/uploads': {
+          target,
+          changeOrigin: true,
+          secure: false,
+        },
+      },
+    },
+  }
 })

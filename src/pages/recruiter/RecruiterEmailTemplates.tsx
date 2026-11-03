@@ -219,7 +219,7 @@ export default function RecruiterEmailTemplates() {
       '{candidate_name}': 'Alex Mercer',
       '{job_title}': 'Senior Full Stack Engineer',
       '{company_name}': 'Your Company Ltd',
-      '{interview_url}': 'https://meet.google.com/jobbuffer-demo',
+      '{interview_url}': 'https://meet.google.com/jobuffer-demo',
       '{interview_date}': new Date().toLocaleDateString('en-US', {
         weekday: 'long',
         month: 'short',
@@ -229,7 +229,7 @@ export default function RecruiterEmailTemplates() {
       '{interview_time}': '10:30 AM IST',
       '{user_first_name}': 'Sarah',
       '{user_last_name}': 'Recruiter',
-      '{action_url}': 'http://localhost:5173/login'
+      '{action_url}': `${import.meta.env.VITE_FRONTEND_URL || 'https://jobuffer.com'}/login`
     };
 
     let pSub = subject;
@@ -841,7 +841,7 @@ export default function RecruiterEmailTemplates() {
               >
                 <div className="bg-gradient-to-r from-slate-900 to-indigo-950 p-5 text-white flex items-center justify-between border-b-2 border-blue-500">
                   <div>
-                    <h1 className="text-lg font-black tracking-wide">Jobbuffer</h1>
+                    <h1 className="text-lg font-black tracking-wide">JoBuffer</h1>
                     <p className="text-[10px] text-slate-400 uppercase tracking-wider">Applicant Notification</p>
                   </div>
                   <span className="text-[10px] bg-blue-500/20 text-blue-300 border border-blue-400/30 px-2 py-0.5 rounded-full font-semibold">
@@ -873,7 +873,7 @@ export default function RecruiterEmailTemplates() {
                 </div>
 
                 <div className="bg-slate-50 p-4 text-center border-t border-slate-100 text-[10px] text-slate-400">
-                  <p>&copy; {new Date().getFullYear()} Jobbuffer Careers. All rights reserved.</p>
+                  <p>&copy; {new Date().getFullYear()} JoBuffer Careers. All rights reserved.</p>
                 </div>
               </div>
             </div>

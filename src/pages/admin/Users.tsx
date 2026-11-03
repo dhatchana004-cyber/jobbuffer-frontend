@@ -11,6 +11,7 @@ import {
 import { Card } from '../../components/ui/Card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
+import { formatCandidateName } from '../../utils/candidateHelper';
 
 export default function UsersList() {
   const queryClient = useQueryClient();
@@ -266,10 +267,10 @@ export default function UsersList() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-slate-800 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shadow-xs flex-shrink-0">
-                            {u.name ? u.name.slice(0, 2).toUpperCase() : 'US'}
+                            {formatCandidateName(u.name, u.email).slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="font-bold text-gray-900 text-xs">{u.name}</p>
+                            <p className="font-bold text-gray-900 text-xs">{formatCandidateName(u.name, u.email)}</p>
                             <p className="text-[11px] text-gray-500 mt-0.5">{u.email}</p>
                           </div>
                         </div>

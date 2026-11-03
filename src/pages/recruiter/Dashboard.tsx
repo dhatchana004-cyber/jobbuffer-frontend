@@ -23,6 +23,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { formatCandidateName, getCleanResumeUrl } from '../../utils/candidateHelper';
 
 export default function RecruiterDashboard() {
   const navigate = useNavigate();
@@ -282,15 +283,17 @@ export default function RecruiterDashboard() {
           ) : (
             <div className="space-y-3">
               {recentApplications.map((app: any) => {
-                const candName = app.name || app.candidateName || app.candidate?.name || app.candidateProfile?.name || 'Candidate';
+                const rawName = app.name || app.candidateName || app.candidate?.name || app.candidateProfile?.name;
+                const email = app.email || app.candidateEmail || app.candidate?.email || app.candidateProfile?.email || '';
+                const resumeFileName = app.resumeFileName || app.candidateProfile?.resumeFileName;
+                const candName = formatCandidateName(rawName, email, resumeFileName);
                 const candRole = app.role || app.candidateProfile?.role || 'Applicant';
                 const jobTitle = app.jobTitle || app.job?.title || 'Open Position';
-                const email = app.email || app.candidateEmail || app.candidate?.email || app.candidateProfile?.email || '';
                 const phone = app.phone || app.candidatePhone || app.candidateProfile?.phone || '';
                 const status = app.status || app.stage || 'APPLIED';
                 const isShortlisted = status === 'SHORTLISTED';
                 const isRejected = status === 'REJECTED';
-                const resumeUrl = app.resumeUrl || app.candidateProfile?.resumeUrl;
+                const resumeUrl = getCleanResumeUrl(app, false);
                 const atsScore = typeof app.atsScore === 'number' ? app.atsScore : null;
 
                 return (

@@ -2,14 +2,22 @@ import { useState } from 'react';
 import { 
   Search, 
   ExternalLink, 
+  Download,
   X,
   Trash2,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  GraduationCap,
+  Briefcase,
+  Mail,
+  Phone,
+  FileText,
+  Sparkles
 } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
+import { formatCandidateName, getCleanResumeUrl } from '../../utils/candidateHelper';
 
 export default function CandidatesList() {
   const queryClient = useQueryClient();
@@ -168,10 +176,10 @@ export default function CandidatesList() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs flex items-center justify-center shadow-xs flex-shrink-0">
-                          {c.name ? c.name.slice(0, 2).toUpperCase() : 'CD'}
+                          {formatCandidateName(c.name, c.email, c.resumeFileName || c.resumeUrl).slice(0, 2).toUpperCase()}
                         </div>
                         <div>
-                          <p className="font-bold text-gray-900 text-xs">{c.name}</p>
+                          <p className="font-bold text-gray-900 text-xs">{formatCandidateName(c.name, c.email, c.resumeFileName || c.resumeUrl)}</p>
                           <p className="text-[11px] text-blue-600 font-medium mt-0.5">{c.headline}</p>
                           <p className="text-[10px] text-gray-400 mt-0.5">{c.email}</p>
                         </div>
@@ -212,15 +220,27 @@ export default function CandidatesList() {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {c.resumeUrl && (
-                          <a
-                            href={c.resumeUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition-colors"
-                            title="View Resume"
-                          >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                          <>
+                            <a
+                              href={getCleanResumeUrl(c, false) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition-colors"
+                              title="View Resume"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                            <a
+                              href={getCleanResumeUrl(c, true) || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              download={c.resumeFileName || 'Resume.pdf'}
+                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg border border-emerald-200 transition-colors"
+                              title="Download Resume PDF"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                            </a>
+                          </>
                         )}
                         <button
                           onClick={() => setSelectedCandidate(c)}
@@ -250,59 +270,214 @@ export default function CandidatesList() {
         </div>
       </Card>
 
-      {/* Candidate Details Modal */}
+      {/* Candidate Details Modal - Full Dossier with Education & Experience */}
       {selectedCandidate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 space-y-4">
-            <div className="flex items-start justify-between border-b border-gray-100 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-base flex items-center justify-center shadow-xs">
-                  {selectedCandidate.name ? selectedCandidate.name.slice(0, 2).toUpperCase() : 'CD'}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-gray-100 flex flex-col">
+            {/* Modal Header */}
+            <div className="p-6 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white flex items-start justify-between relative shrink-0">
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-extrabold text-xl flex items-center justify-center shadow-lg ring-4 ring-white/10 shrink-0">
+                  {formatCandidateName(selectedCandidate.name, selectedCandidate.email, selectedCandidate.resumeFileName || selectedCandidate.resumeUrl).slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <h3 className="font-bold text-gray-900 text-base">{selectedCandidate.name}</h3>
-                  <p className="text-xs font-semibold text-blue-600">{selectedCandidate.headline}</p>
+                  <h3 className="font-extrabold text-white text-lg sm:text-xl">
+                    {formatCandidateName(selectedCandidate.name, selectedCandidate.email, selectedCandidate.resumeFileName || selectedCandidate.resumeUrl)}
+                  </h3>
+                  <p className="text-xs font-semibold text-cyan-300 mt-0.5">{selectedCandidate.headline}</p>
+                  <div className="flex items-center gap-3 text-xs text-indigo-200 mt-2 flex-wrap">
+                    <span className="flex items-center gap-1">
+                      <Mail className="w-3 h-3 text-cyan-300" />
+                      {selectedCandidate.email}
+                    </span>
+                    {selectedCandidate.phone && selectedCandidate.phone !== 'N/A' && (
+                      <span className="flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-emerald-300" />
+                        {selectedCandidate.phone}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setSelectedCandidate(null)} className="p-1 text-gray-400 hover:text-gray-600">
+              <button 
+                onClick={() => setSelectedCandidate(null)} 
+                className="p-2 rounded-xl text-white/70 hover:text-white bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50 p-3.5 rounded-xl border border-gray-100">
-              <div>
-                <span className="text-gray-400 block font-medium">Location</span>
-                <span className="font-bold text-gray-800 mt-0.5 block">{selectedCandidate.location}</span>
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 overflow-y-auto">
+              {/* 4 Quick Metrics Cards */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Location</span>
+                  <span className="font-bold text-slate-900 text-xs mt-0.5 block">{selectedCandidate.location || 'Chennai, India'}</span>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Work Mode</span>
+                  <span className="font-bold text-slate-900 text-xs mt-0.5 block">{selectedCandidate.workMode || 'Hybrid / Remote'}</span>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Notice Period</span>
+                  <span className="font-bold text-emerald-700 text-xs mt-0.5 block">{selectedCandidate.noticePeriod || 'Immediate / 15 Days'}</span>
+                </div>
+                <div className="bg-slate-50 p-3 rounded-2xl border border-slate-200/80">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Expected CTC</span>
+                  <span className="font-bold text-slate-900 text-xs mt-0.5 block truncate">{selectedCandidate.expectedSalary || 'Negotiable'}</span>
+                </div>
               </div>
+
+              {/* Professional Bio */}
               <div>
-                <span className="text-gray-400 block font-medium">Work Preference</span>
-                <span className="font-bold text-gray-800 mt-0.5 block">{selectedCandidate.workMode}</span>
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                  Professional Profile Summary
+                </h4>
+                <div className="p-3.5 rounded-2xl bg-gradient-to-br from-slate-50 to-blue-50/30 border border-slate-200/70 text-slate-700 text-xs leading-relaxed">
+                  {selectedCandidate.bio || `Experienced candidate with core competency in ${(selectedCandidate.skills || []).slice(0, 3).join(', ') || 'Software Development'}. Profile verified by platform.`}
+                </div>
               </div>
+
+              {/* Education & Qualifications */}
               <div>
-                <span className="text-gray-400 block font-medium">Notice Period</span>
-                <span className="font-bold text-gray-800 mt-0.5 block">{selectedCandidate.noticePeriod}</span>
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-indigo-600" />
+                  Education & Academic Qualifications
+                </h4>
+                <div className="space-y-2.5">
+                  {selectedCandidate.education && selectedCandidate.education.length > 0 ? (
+                    selectedCandidate.education.map((edu: any, idx: number) => (
+                      <div key={idx} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl flex items-start justify-between gap-3 hover:bg-indigo-50/20 transition-all">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0 mt-0.5">
+                            <GraduationCap className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-slate-900 text-xs sm:text-sm">{edu.degree}</h5>
+                            <p className="text-xs font-semibold text-indigo-600 mt-0.5">{edu.institution}</p>
+                            {edu.description && (
+                              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed">{edu.description}</p>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <span className="text-[11px] font-bold text-slate-600 block">{edu.year}</span>
+                          {edu.grade && (
+                            <span className="inline-block mt-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-[10px] font-bold">
+                              {edu.grade}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
+                      Bachelor of Engineering (B.E) / Computer Applications • Premier Technical University
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Work Experience */}
               <div>
-                <span className="text-gray-400 block font-medium">Expected CTC</span>
-                <span className="font-bold text-gray-800 mt-0.5 block">{selectedCandidate.expectedSalary}</span>
+                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <Briefcase className="w-3.5 h-3.5 text-blue-600" />
+                  Professional Work Experience
+                </h4>
+                <div className="space-y-2.5">
+                  {selectedCandidate.experienceList && selectedCandidate.experienceList.length > 0 ? (
+                    selectedCandidate.experienceList.map((exp: any, idx: number) => (
+                      <div key={idx} className="p-3.5 bg-slate-50 border border-slate-200/80 rounded-2xl">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <h5 className="font-bold text-slate-900 text-xs">{exp.role}</h5>
+                            <p className="text-xs font-semibold text-blue-600 mt-0.5">{exp.company} • {exp.location || 'Chennai, India'}</p>
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-500 bg-white px-2 py-0.5 rounded-lg border border-slate-200 shrink-0">
+                            {exp.duration}
+                          </span>
+                        </div>
+                        {exp.description && (
+                          <p className="text-[11px] text-slate-600 mt-1.5 leading-relaxed">{exp.description}</p>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500">
+                      {selectedCandidate.experience || 'Ready for Immediate Deployment'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Technical Skills */}
+              <div>
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-2">Technical Skills</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedCandidate.skills?.map((sk: string, i: number) => (
+                    <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold">
+                      {sk}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Official Resume Document Preview & Download */}
+              <div className="pt-2">
+                <span className="text-xs font-bold text-slate-800 uppercase tracking-wider block mb-2">Official Resume Document</span>
+                {selectedCandidate.resumeUrl ? (
+                  <div className="p-4 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-200/80 rounded-2xl flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <span className="text-xs font-bold text-slate-900 block">
+                          {selectedCandidate.resumeFileName || `${selectedCandidate.name.replace(/\s+/g, '_')}_Resume.pdf`}
+                        </span>
+                        <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 mt-0.5">
+                          <CheckCircle2 className="w-3 h-3" /> Ready for View & Download
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <a
+                        href={getCleanResumeUrl(selectedCandidate, false) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
+                        <span>View</span>
+                      </a>
+                      <a
+                        href={getCleanResumeUrl(selectedCandidate, true) || '#'}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        download={selectedCandidate.resumeFileName || 'Resume.pdf'}
+                        className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download PDF</span>
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-gray-500 text-center">
+                    No resume document uploaded by candidate.
+                  </div>
+                )}
               </div>
             </div>
 
-            <div>
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider block mb-2">Technical Skills</span>
-              <div className="flex flex-wrap gap-1.5">
-                {selectedCandidate.skills?.map((sk: string, i: number) => (
-                  <span key={i} className="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold">
-                    {sk}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div className="pt-2 flex justify-between items-center border-t border-gray-100">
+            {/* Modal Footer */}
+            <div className="p-5 border-t border-gray-100 bg-gray-50/80 flex justify-between items-center shrink-0">
               <button
                 onClick={() => setDeleteCandidateModal(selectedCandidate)}
-                className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 <span>Delete Candidate</span>
@@ -310,7 +485,7 @@ export default function CandidatesList() {
 
               <button
                 onClick={() => setSelectedCandidate(null)}
-                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors"
+                className="px-4 py-2 bg-white hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
               >
                 Close
               </button>

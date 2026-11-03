@@ -18,6 +18,7 @@ import {
 import { Card } from '../../components/ui/Card';
 import { StatCard } from '../../components/ui/StatCard';
 import api from '../../services/api';
+import { formatCandidateName } from '../../utils/candidateHelper';
 
 export default function GlobalInterviews() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -233,7 +234,9 @@ export default function GlobalInterviews() {
                       <div className="flex items-start gap-2">
                         <User className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-semibold text-gray-900 block">{interview.candidateName}</span>
+                          <span className="font-semibold text-gray-900 block">
+                            {formatCandidateName(interview.candidateName, interview.candidateEmail)}
+                          </span>
                           <span className="text-gray-500">{interview.candidateEmail}</span>
                         </div>
                       </div>

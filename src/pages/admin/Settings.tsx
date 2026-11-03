@@ -19,14 +19,14 @@ export default function Settings() {
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   // Form states
-  const [platformName, setPlatformName] = useState('Jobbuffer Portal');
-  const [supportEmail, setSupportEmail] = useState('support@jobbuffer.com');
+  const [platformName, setPlatformName] = useState('JoBuffer Portal');
+  const [supportEmail, setSupportEmail] = useState('support@jobuffer.com');
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [require2FA, setRequire2FA] = useState(false);
   const [enableGoogleSSO, setEnableGoogleSSO] = useState(true);
   const [emailVerificationRequired, setEmailVerificationRequired] = useState(true);
 
-  // API Key states (Jobbuffer platform integration keys - never expose secret keys in frontend)
+  // API Key states (JoBuffer platform integration keys - never expose secret keys in frontend)
   const [apiKey, setApiKey] = useState(
     () => import.meta.env.VITE_PLATFORM_API_KEY || 'jb_live_9482bf7a810c92138e94a8271049c81b'
   );
@@ -186,7 +186,7 @@ export default function Settings() {
                   </label>
                   <input
                     type="url"
-                    defaultValue="https://app.jobbuffer.com"
+                    defaultValue="https://app.jobuffer.com"
                     readOnly
                     className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm font-mono text-gray-600 focus:outline-none cursor-not-allowed"
                   />
@@ -308,7 +308,7 @@ export default function Settings() {
                   </label>
                   <div className="flex items-center gap-6">
                     <div className="w-24 h-24 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-center p-3 shadow-xs">
-                      <img src="/logo.png" alt="Jobbuffer" className="w-16 h-16 object-contain" />
+                      <img src="/logo.png" alt="JoBuffer" className="w-16 h-16 object-contain" />
                     </div>
                     <div>
                       <button className="px-4 py-2 bg-white border border-gray-300 rounded-xl text-xs font-bold text-gray-700 hover:bg-gray-50 transition">
