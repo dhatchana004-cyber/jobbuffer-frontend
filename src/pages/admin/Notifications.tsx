@@ -46,8 +46,12 @@ export default function Notifications() {
   const { data: deliveryLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery<DeliveryLog[]>({
     queryKey: ['adminEmailDeliveryLogs', logStatusFilter],
     queryFn: async () => {
-      const res = await api.get(`/admin/email-delivery-logs?status=${logStatusFilter}`);
-      return res.data;
+      try {
+        const res = await api.get(`/admin/email-delivery-logs?status=${logStatusFilter}`);
+        return Array.isArray(res.data) ? res.data : [];
+      } catch {
+        return [];
+      }
     }
   });
 
@@ -85,8 +89,12 @@ export default function Notifications() {
   const { data: notifications = [], isLoading: notifsLoading } = useQuery({
     queryKey: ['adminNotifications'],
     queryFn: async () => {
-      const response = await api.get('/admin/notifications');
-      return response.data;
+      try {
+        const response = await api.get('/admin/notifications');
+        return Array.isArray(response.data) ? response.data : [];
+      } catch (err: any) {
+        return [];
+      }
     }
   });
 

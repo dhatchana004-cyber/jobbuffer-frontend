@@ -83,10 +83,13 @@ export default function Messages() {
   const { data: conversations = [], isLoading: isLoadingConversations } = useQuery<Conversation[]>({
     queryKey: ['recruiterConversations'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/messages/conversations');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/messages/conversations');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     },
-    refetchInterval: 5000 // Poll every 5s for new messages
+    refetchInterval: 15000
   });
 
   // Automatically select the first conversation if none selected
@@ -101,19 +104,26 @@ export default function Messages() {
     queryKey: ['conversationMessages', activeConversationId],
     queryFn: async () => {
       if (!activeConversationId) return null;
-      const res = await api.get(`/recruiter/messages/conversations/${activeConversationId}`);
-      return res.data;
+      try {
+        const res = await api.get(`/recruiter/messages/conversations/${activeConversationId}`);
+        return res.data;
+      } catch {
+        return null;
+      }
     },
     enabled: !!activeConversationId,
-    refetchInterval: 3000
+    refetchInterval: 10000
   });
 
-  // Fetch candidates for "+ New Chat"
+  // Fetch candidates for "+ New Chat" strictly for this recruiter
   const { data: candidates = [] } = useQuery({
     queryKey: ['candidatesForChat'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/candidates');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/candidates');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 

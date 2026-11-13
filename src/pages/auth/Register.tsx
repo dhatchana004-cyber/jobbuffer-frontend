@@ -149,8 +149,8 @@ export default function Register() {
             {/* Logo & Portal Badge */}
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center space-x-3">
-                <img src="/logo.png" alt="JoBuffer Logo" className="w-11 h-11 object-contain" />
-                <img src="/logo-name.png" alt="JoBuffer" className="h-6 object-contain" />
+                <img src="/logo.png?v=20261104" alt="JoBuffer Logo" className="w-12 h-12 object-contain" />
+                <img src="/logo-name.png?v=20261104" alt="JoBuffer" className="h-7 object-contain" />
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1.5">
                 <Building2 className="w-3.5 h-3.5" />

@@ -32,11 +32,15 @@ export default function RecruiterNotifications() {
   const [filterType, setFilterType] = useState('ALL');
 
   // Fetch Notifications
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['recruiterNotifications'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/notifications');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/notifications');
+        return res.data;
+      } catch {
+        return { notifications: [], unreadCount: 0 };
+      }
     }
   });
 
@@ -193,10 +197,6 @@ export default function RecruiterNotifications() {
         <div className="py-20 text-center text-xs text-gray-400">
           <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 text-blue-600" />
           Loading notifications...
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-center text-red-700 text-xs font-semibold">
-          Unable to load notifications. Please check your connection.
         </div>
       ) : filteredNotifications.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center">

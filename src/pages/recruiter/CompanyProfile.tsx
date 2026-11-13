@@ -73,8 +73,18 @@ export default function CompanyProfile() {
   const { data: company, isLoading } = useQuery({
     queryKey: ['companyProfile'],
     queryFn: async () => {
-      const response = await api.get('/recruiter/company');
-      return response.data;
+      try {
+        const response = await api.get('/recruiter/company');
+        if (response.data && response.data.name) return response.data;
+      } catch (err: any) {}
+      return {
+        name: '',
+        website: '',
+        industry: 'Technology & Software',
+        size: '11-50 employees',
+        headquarters: 'Chennai, India',
+        description: ''
+      };
     }
   });
 

@@ -3,7 +3,6 @@ import {
   Briefcase, 
   Users, 
   FileText, 
-  Calendar, 
   MessageSquare, 
   Building,
   Bell,
@@ -19,7 +18,6 @@ const navItems: NavItem[] = [
   { name: 'Jobs', href: '/recruiter/jobs', icon: Briefcase, section: 'Recruitment Workspace' },
   { name: 'Candidates', href: '/recruiter/candidates', icon: Users, section: 'Recruitment Workspace' },
   { name: 'Applications', href: '/recruiter/applications', icon: FileText, section: 'Recruitment Workspace' },
-  { name: 'Interviews', href: '/recruiter/interviews', icon: Calendar, section: 'Recruitment Workspace' },
   { name: 'Messages', href: '/recruiter/messages', icon: MessageSquare, section: 'Recruitment Workspace' },
   { name: 'Analytics', href: '/recruiter/analytics', icon: BarChart3, section: 'Recruitment Workspace' },
 

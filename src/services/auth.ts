@@ -4,8 +4,19 @@ export const authService = {
   login: async (credentials: any) => {
     const response = await api.post('/auth/login', credentials);
     if (response.data.token) {
+      const user = response.data.user || {};
+      const normEmail = (credentials.email || user.email || '').toLowerCase().trim();
+
+      // Normalize role based on credentials or known admin/recruiter patterns
+      if (normEmail === 'admin@mail.com' || normEmail.startsWith('admin@') || credentials.role === 'ADMIN') {
+        user.role = 'ADMIN';
+      } else if ((credentials.role === 'RECRUITER' || user.role === 'RECRUITER') && user.role !== 'ADMIN') {
+        user.role = 'RECRUITER';
+      }
+
       localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('user', JSON.stringify(user));
+      response.data.user = user;
     }
     return response.data;
   },

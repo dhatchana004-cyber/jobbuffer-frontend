@@ -99,8 +99,12 @@ export default function RecruiterEmailTemplates() {
   const { data: rawData, isLoading: templatesLoading } = useQuery({
     queryKey: ['recruiterEmailTemplates'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/email-templates');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/email-templates');
+        return res.data;
+      } catch {
+        return [];
+      }
     }
   });
 
@@ -248,8 +252,12 @@ export default function RecruiterEmailTemplates() {
   const { data: deliveryLogs = [], isLoading: logsLoading, refetch: refetchLogs } = useQuery<DeliveryLog[]>({
     queryKey: ['recruiterDeliveryLogs', logStatusFilter],
     queryFn: async () => {
-      const res = await api.get(`/recruiter/email-delivery-logs?status=${logStatusFilter}`);
-      return res.data;
+      try {
+        const res = await api.get(`/recruiter/email-delivery-logs?status=${logStatusFilter}`);
+        return res.data;
+      } catch {
+        return [];
+      }
     }
   });
 

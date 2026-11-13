@@ -12,7 +12,6 @@ import JobsList from './pages/recruiter/Jobs';
 import CreateJob from './pages/recruiter/CreateJob';
 import ApplicationsPipeline from './pages/recruiter/Applications';
 import CandidatesDiscovery from './pages/recruiter/CandidatesDiscovery';
-import RecruiterInterviews from './pages/recruiter/RecruiterInterviews';
 import Messages from './pages/recruiter/Messages';
 import CompanyProfile from './pages/recruiter/CompanyProfile';
 import RecruiterNotifications from './pages/recruiter/RecruiterNotifications';
@@ -26,28 +25,45 @@ import CandidatesList from './pages/admin/Candidates';
 import Companies from './pages/admin/Companies';
 import AdminJobs from './pages/admin/AdminJobs';
 import GlobalApplications from './pages/admin/GlobalApplications';
-import GlobalInterviews from './pages/admin/GlobalInterviews';
 import Reports from './pages/admin/Reports';
 
 import Categories from './pages/admin/Categories';
 import Moderation from './pages/admin/Moderation';
 import Notifications from './pages/admin/Notifications';
 import Settings from './pages/admin/Settings';
-import CandidateJobs from './pages/candidate/CandidateJobs';
+import { authService } from './services/auth';
+import ErrorBoundary from './components/ErrorBoundary';
 
 const queryClient = new QueryClient();
 
+// Smart Root Redirect based on active authentication and role
+function RootRedirect() {
+  const token = localStorage.getItem('token');
+  const user = authService.getCurrentUser();
+
+  if (!token || !user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  const role = (user.role || '').toUpperCase();
+  if (role === 'ADMIN') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  return <Navigate to="/recruiter/dashboard" replace />;
+}
+
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Routes>
+          <Route path="/" element={<RootRedirect />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/jobs" element={<CandidateJobs />} />
-          <Route path="/candidate/jobs" element={<CandidateJobs />} />
-          <Route path="/explore-jobs" element={<CandidateJobs />} />
+          <Route path="/jobs" element={<Navigate to="/login" replace />} />
+          <Route path="/candidate/jobs" element={<Navigate to="/login" replace />} />
+          <Route path="/explore-jobs" element={<Navigate to="/login" replace />} />
           
           {/* Recruiter Routes */}
           <Route path="/recruiter" element={<RecruiterLayout />}>
@@ -59,7 +75,7 @@ function App() {
             
             {/* Pending Recruiter Routes */}
             <Route path="candidates" element={<CandidatesDiscovery />} />
-            <Route path="interviews" element={<RecruiterInterviews />} />
+            <Route path="interviews" element={<Navigate to="applications" replace />} />
             <Route path="messages" element={<Messages />} />
             <Route path="company" element={<CompanyProfile />} />
             <Route path="templates" element={<RecruiterEmailTemplates />} />
@@ -80,17 +96,21 @@ function App() {
             <Route path="companies" element={<Companies />} />
             <Route path="jobs" element={<AdminJobs />} />
             <Route path="applications" element={<GlobalApplications />} />
-            <Route path="interviews" element={<GlobalInterviews />} />
+            <Route path="interviews" element={<Navigate to="applications" replace />} />
             <Route path="reports" element={<Reports />} />
             <Route path="categories" element={<Categories />} />
             <Route path="moderation" element={<Moderation />} />
             <Route path="notifications" element={<Notifications />} />
             <Route path="settings" element={<Settings />} />
           </Route>
+
+          {/* Catch-all redirect */}
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </QueryClientProvider>
-  );
+  </ErrorBoundary>
+);
 }
 
 export default App;

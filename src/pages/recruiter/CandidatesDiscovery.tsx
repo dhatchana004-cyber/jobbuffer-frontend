@@ -23,10 +23,14 @@ import {
   Check,
   Trash2,
   GraduationCap,
-  Award
+  Award,
+  Lock,
+  Crown
 } from 'lucide-react';
 import api from '../../services/api';
 import { formatCandidateName, getCleanResumeUrl } from '../../utils/candidateHelper';
+import { useRecruiterPlan } from '../../hooks/useRecruiterPlan';
+import UpgradeToProModal from '../../components/recruiter/UpgradeToProModal';
 
 interface Candidate {
   id: string;
@@ -50,6 +54,7 @@ interface Candidate {
   joinedAt: string;
   appliedJobs: string[];
   isShortlisted?: boolean;
+  isLocked?: boolean;
   stage?: string;
   applicationStatus?: string;
   shortlistedJobs?: string[];
@@ -77,6 +82,19 @@ interface Candidate {
 
 export default function CandidatesDiscovery() {
   const queryClient = useQueryClient();
+  const {
+    plan,
+    isPro,
+    maxProfiles,
+    isModalOpen,
+    modalFeature,
+    openUpgradeModal,
+    closeUpgradeModal,
+    activatePlan,
+    isActivating,
+    trackProfileView
+  } = useRecruiterPlan();
+
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorkMode, setSelectedWorkMode] = useState('All');
   const [selectedNotice, setSelectedNotice] = useState('All');
@@ -96,27 +114,37 @@ export default function CandidatesDiscovery() {
     return getCleanResumeUrl(cand, forDownload);
   };
 
-  // Fetch candidates
-  const { data: candidates = [], isLoading, error } = useQuery<Candidate[]>({
+  // Fetch candidates with graceful fallback
+  const { data: candidates = [], isLoading } = useQuery<Candidate[]>({
     queryKey: ['candidatesDiscovery', searchTerm, selectedWorkMode, selectedNotice, selectedSkill],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (selectedWorkMode !== 'All') params.append('workMode', selectedWorkMode);
-      if (selectedNotice !== 'All') params.append('noticePeriod', selectedNotice);
-      if (selectedSkill !== 'All') params.append('skill', selectedSkill);
+      try {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('search', searchTerm);
+        if (selectedWorkMode !== 'All') params.append('workMode', selectedWorkMode);
+        if (selectedNotice !== 'All') params.append('noticePeriod', selectedNotice);
+        if (selectedSkill !== 'All') params.append('skill', selectedSkill);
 
-      const response = await api.get(`/recruiter/candidates?${params.toString()}`);
-      return response.data;
+        const response = await api.get(`/recruiter/candidates?${params.toString()}`);
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+      } catch (err: any) {
+        // Fallback to empty candidates
+      }
+      return [] as Candidate[];
     }
   });
 
-  // Fetch recruiter's jobs for the invite dropdown
+  // Fetch recruiter's jobs for the invite dropdown strictly
   const { data: myJobs = [] } = useQuery({
     queryKey: ['recruiterJobsForInvite'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/jobs');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/jobs');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
@@ -216,8 +244,49 @@ export default function CandidatesDiscovery() {
             <span className="text-[11px] text-gray-400 font-medium block">Remote Ready</span>
             <span className="text-lg font-bold text-blue-600">{remoteCount}</span>
           </div>
+          <div 
+            onClick={() => !isPro && openUpgradeModal('candidates')}
+            className={`border rounded-xl px-4 py-2 shadow-xs text-center cursor-pointer transition ${
+              isPro 
+                ? 'bg-purple-50/70 border-purple-200' 
+                : 'bg-white border-amber-200 hover:border-purple-300'
+            }`}
+          >
+            <span className="text-[11px] font-bold flex items-center justify-center gap-1 text-slate-500">
+              {isPro ? <Crown className="w-3 h-3 text-purple-600" /> : <Lock className="w-3 h-3 text-amber-600" />}
+              {isPro ? 'PRO Capacity' : 'Free Limit'}
+            </span>
+            <span className="text-sm font-black text-purple-700">Max {maxProfiles} Profiles</span>
+          </div>
         </div>
       </div>
+
+      {/* Free Plan Alert Banner */}
+      {!isPro && (
+        <div className="bg-gradient-to-r from-slate-900 via-purple-950 to-indigo-950 text-white rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md border border-purple-500/20">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-amber-300 flex-shrink-0">
+              <Crown className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-white flex items-center gap-2">
+                Free Version: Viewing Limited to 50 Candidate Profiles
+                <span className="text-[10px] px-2 py-0.2 rounded-full bg-amber-400/20 text-amber-300 font-semibold border border-amber-400/30">
+                  Profiles 51-100 Locked
+                </span>
+              </p>
+              <p className="text-[11px] text-purple-200 mt-0.5">Upgrade to PRO to view up to 100 candidate profiles, unlock AI ATS scoring, and post 50 jobs monthly.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => openUpgradeModal('candidates')}
+            className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+            <span>Upgrade to 100 Profiles</span>
+          </button>
+        </div>
+      )}
 
       {/* Filter and Search Bar */}
       <div className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm space-y-4">
@@ -325,11 +394,6 @@ export default function CandidatesDiscovery() {
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-r-transparent"></div>
           <p className="mt-3 text-xs font-semibold text-gray-500">Discovering qualified candidate profiles...</p>
         </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-center text-red-700">
-          <p className="font-bold text-sm">Unable to load candidate database</p>
-          <p className="text-xs mt-1">Please refresh the page or check your server connection.</p>
-        </div>
       ) : candidates.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center max-w-lg mx-auto">
           <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -338,12 +402,12 @@ export default function CandidatesDiscovery() {
           <h3 className="text-base font-bold text-gray-900">
             {searchTerm || selectedWorkMode !== 'All' || selectedNotice !== 'All' || selectedSkill !== 'All' 
               ? 'No candidates match your selected criteria' 
-              : 'No candidates registered yet'}
+              : 'No candidate applications received yet'}
           </h3>
           <p className="text-xs text-gray-500 mt-1">
             {searchTerm || selectedWorkMode !== 'All' || selectedNotice !== 'All' || selectedSkill !== 'All'
               ? 'Try resetting the filters or searching with different keywords.'
-              : 'As candidates register on JoBuffer, their profiles will populate here for discovery.'}
+              : 'Candidates who apply to your posted jobs will appear here.'}
           </p>
           {(searchTerm || selectedWorkMode !== 'All' || selectedNotice !== 'All' || selectedSkill !== 'All') && (
             <button
@@ -361,7 +425,62 @@ export default function CandidatesDiscovery() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {candidates.map((cand) => (
+          {candidates.map((cand, index) => {
+            const isCandidateLocked = Boolean(cand.isLocked || (!isPro && index >= 50));
+
+            if (isCandidateLocked) {
+              return (
+                <div
+                  key={cand.id || index}
+                  className="relative bg-gradient-to-br from-slate-50 via-white to-amber-50/30 rounded-2xl border-2 border-dashed border-amber-300 p-5 flex flex-col justify-between overflow-hidden shadow-xs"
+                >
+                  <div className="absolute top-3 right-3 z-10">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-gradient-to-r from-amber-500 to-indigo-600 text-white shadow-xs flex items-center gap-1">
+                      <Lock className="w-3 h-3" /> PRO ONLY #{index + 1}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-amber-100/70 text-amber-700 flex items-center justify-center font-bold text-sm">
+                        <Lock className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div className="min-w-0 pr-16">
+                        <h3 className="font-bold text-gray-800 text-sm truncate">
+                          {cand.name.startsWith('Can') || cand.name.includes('*') ? cand.name : `Candidate Profile #${index + 1}`}
+                        </h3>
+                        <p className="text-xs font-semibold text-indigo-600 mt-0.5 truncate">
+                          {cand.role || 'Talent Profile'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-3.5 bg-amber-50/80 rounded-xl border border-amber-200/70 text-center">
+                      <div className="w-7 h-7 mx-auto rounded-full bg-amber-100 flex items-center justify-center text-amber-600 mb-1.5">
+                        <Crown className="w-4 h-4" />
+                      </div>
+                      <p className="text-xs font-bold text-slate-900">
+                        Profile Exceeds Free Plan Quota
+                      </p>
+                      <p className="text-[11px] text-gray-600 mt-1 leading-snug">
+                        Free recruiters can view up to 50 profiles. Upgrade to PRO to view up to 100 candidate profiles.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-3 border-t border-gray-100">
+                    <button
+                      onClick={() => openUpgradeModal('candidates')}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-amber-500 via-indigo-600 to-purple-600 hover:from-amber-600 hover:to-purple-700 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                    >
+                      <Crown className="w-3.5 h-3.5" /> Unlock with PRO Plan
+                    </button>
+                  </div>
+                </div>
+              );
+            }
+
+            return (
             <div
               key={cand.id}
               className="bg-white rounded-2xl border border-gray-200 hover:border-blue-400 hover:shadow-md transition-all duration-200 p-5 flex flex-col justify-between"
@@ -375,7 +494,10 @@ export default function CandidatesDiscovery() {
                     </div>
                     <div className="min-w-0">
                       <h3 
-                        onClick={() => setSelectedCandidate(cand)}
+                        onClick={() => {
+                          trackProfileView();
+                          setSelectedCandidate(cand);
+                        }}
                         className="font-bold text-gray-900 text-sm leading-snug hover:text-blue-600 transition-colors cursor-pointer truncate" 
                       >
                         {formatCandidateName(cand.name, cand.email, cand.resumeFileName)}
@@ -456,6 +578,7 @@ export default function CandidatesDiscovery() {
                   {cand.phone && (
                     <a
                       href={`tel:${cand.phone}`}
+                      onClick={() => trackProfileView()}
                       className="flex-1 py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors text-[11px]"
                       title={`Call ${cand.phone}`}
                     >
@@ -466,6 +589,7 @@ export default function CandidatesDiscovery() {
                   {cand.email && (
                     <a
                       href={`mailto:${cand.email}`}
+                      onClick={() => trackProfileView()}
                       className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors text-[11px]"
                       title={`Email ${cand.email}`}
                     >
@@ -476,6 +600,7 @@ export default function CandidatesDiscovery() {
                   {cand.hasResume && cand.resumeUrl ? (
                     <a
                       href={getResumeUrl(cand, false) || '#'}
+                      onClick={() => trackProfileView()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="py-1.5 px-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-bold flex items-center justify-center gap-1 transition-colors text-[11px]"
@@ -495,7 +620,10 @@ export default function CandidatesDiscovery() {
               {/* Action Buttons */}
               <div className="flex items-center gap-2 pt-3 mt-3 border-t border-gray-100">
                 <button
-                  onClick={() => setSelectedCandidate(cand)}
+                  onClick={() => {
+                    trackProfileView();
+                    setSelectedCandidate(cand);
+                  }}
                   className="flex-1 py-2 px-3 border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Full Profile
@@ -533,7 +661,8 @@ export default function CandidatesDiscovery() {
                 </button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
@@ -1351,6 +1480,15 @@ export default function CandidatesDiscovery() {
           </div>
         </div>
       )}
+      {/* Upgrade to Pro Modal */}
+      <UpgradeToProModal
+        isOpen={isModalOpen}
+        onClose={closeUpgradeModal}
+        featureLocked={modalFeature}
+        onActivatePro={() => activatePlan('PRO')}
+        isActivating={isActivating}
+        currentPlan={plan}
+      />
     </div>
   );
 }

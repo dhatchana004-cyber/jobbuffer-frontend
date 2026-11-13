@@ -6,7 +6,6 @@ import {
   Building2, 
   Briefcase, 
   FileText, 
-  Calendar, 
   BarChart, 
   Layers, 
   ShieldAlert, 
@@ -20,7 +19,6 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard, section: 'Core Platform' },
   { name: 'Jobs', href: '/admin/jobs', icon: Briefcase, section: 'Core Platform' },
   { name: 'Applications', href: '/admin/applications', icon: FileText, section: 'Core Platform' },
-  { name: 'Interviews', href: '/admin/interviews', icon: Calendar, section: 'Core Platform' },
 
   // 2. User & Talent Directory
   { name: 'Users', href: '/admin/users', icon: Users, section: 'User & Talent Directory' },

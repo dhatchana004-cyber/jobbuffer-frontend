@@ -23,9 +23,13 @@ import {
   Layers,
   Upload,
   Trash2,
-  ShieldCheck
+  ShieldCheck,
+  Lock,
+  Crown
 } from 'lucide-react';
 import api from '../../services/api';
+import { useRecruiterPlan } from '../../hooks/useRecruiterPlan';
+import UpgradeToProModal from '../../components/recruiter/UpgradeToProModal';
 
 const CATEGORIES = [
   'Engineering & Technology',
@@ -126,6 +130,22 @@ const ROLE_TEMPLATES: Record<string, {
 export default function CreateJob() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+
+  const {
+    plan,
+    isPro,
+    maxJobs,
+    subscription,
+    isModalOpen,
+    modalFeature,
+    openUpgradeModal,
+    closeUpgradeModal,
+    activatePlan,
+    isActivating
+  } = useRecruiterPlan();
+
+  const monthlyJobsPosted = subscription?.usage?.monthlyJobsPosted ?? 0;
+  const isMonthlyLimitReached = !isPro && monthlyJobsPosted >= maxJobs;
 
   // Fetch recruiter company details for preview
   const { data: companyProfile } = useQuery({
@@ -268,6 +288,12 @@ export default function CreateJob() {
   const handleSaveJob = async (status: 'PUBLISHED' | 'DRAFT' = 'PUBLISHED') => {
     const isDraft = status === 'DRAFT';
 
+    if (isMonthlyLimitReached) {
+      setErrorMsg(`You have reached your Free plan limit of ${maxJobs} jobs posted this month. Upgrade to PRO to post up to 50 jobs!`);
+      openUpgradeModal('jobs');
+      return;
+    }
+
     if (!isDraft) {
       if (!title.trim()) {
         setErrorMsg('Please enter a Job Title');
@@ -334,6 +360,9 @@ export default function CreateJob() {
       navigate('/recruiter/jobs');
     } catch (err: any) {
       console.error('Job submission failed:', err);
+      if (err.response?.data?.code === 'JOB_LIMIT_EXCEEDED') {
+        openUpgradeModal('jobs');
+      }
       setErrorMsg(err.response?.data?.message || 'Failed to save job. Please check all fields and try again.');
     } finally {
       setIsSubmitting(false);
@@ -403,6 +432,52 @@ export default function CreateJob() {
             {isSubmitting ? 'Publishing...' : 'Publish Job Opening'}
           </button>
         </div>
+      </div>
+
+      {/* Monthly Quota Banner */}
+      <div className={`p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border shadow-2xs ${
+        isMonthlyLimitReached 
+          ? 'bg-amber-50/90 border-amber-300 text-amber-900' 
+          : 'bg-white border-slate-200/80 text-slate-700'
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold ${
+            isMonthlyLimitReached ? 'bg-amber-200 text-amber-800' : 'bg-blue-50 text-blue-600'
+          }`}>
+            {isMonthlyLimitReached ? <Lock className="w-4 h-4" /> : <Briefcase className="w-4 h-4" />}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                Monthly Job Posting Quota
+              </span>
+              <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold ${
+                isPro ? 'bg-gradient-to-r from-amber-500 to-indigo-600 text-white' : 'bg-slate-100 text-slate-700'
+              }`}>
+                {plan} PLAN
+              </span>
+            </div>
+            <p className="text-sm font-bold text-slate-900 mt-0.5">
+              {monthlyJobsPosted} of {maxJobs} jobs posted this calendar month
+              {isMonthlyLimitReached && (
+                <span className="text-rose-600 font-extrabold ml-2">
+                  (Monthly Limit Reached!)
+                </span>
+              )}
+            </p>
+          </div>
+        </div>
+
+        {!isPro && (
+          <button
+            type="button"
+            onClick={() => openUpgradeModal('jobs')}
+            className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-gradient-to-r from-amber-500 to-indigo-600 hover:from-amber-600 hover:to-indigo-700 text-white shadow-xs flex items-center gap-1.5 transition-all self-end sm:self-auto cursor-pointer"
+          >
+            <Crown className="w-3.5 h-3.5" />
+            Upgrade to PRO (50 Jobs)
+          </button>
+        )}
       </div>
 
       {/* Global Error Banner */}
@@ -1356,6 +1431,15 @@ export default function CreateJob() {
           </div>
         </div>
       )}
+      {/* Upgrade to PRO Modal */}
+      <UpgradeToProModal
+        isOpen={isModalOpen}
+        onClose={closeUpgradeModal}
+        featureLocked={modalFeature}
+        onActivatePro={() => activatePlan('PRO')}
+        isActivating={isActivating}
+        currentPlan={plan}
+      />
     </div>
   );
 }

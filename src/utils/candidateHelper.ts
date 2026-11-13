@@ -5,10 +5,12 @@
  * 3. Extract candidate initials
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.VITE_API_URL 
-    ? String(import.meta.env.VITE_API_URL).replace(/\/api(\/v\d+)?\/?$/i, '') 
-    : 'https://api.jobuffer.com');
+const API_BASE = (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'))
+  ? '' 
+  : (import.meta.env.VITE_API_BASE_URL || 
+    (import.meta.env.VITE_API_URL 
+      ? String(import.meta.env.VITE_API_URL).replace(/\/api(\/v\d+)?\/?$/i, '') 
+      : ''));
 
 export function formatCandidateName(
   name?: string | null,
@@ -83,24 +85,29 @@ export function getCleanResumeUrl(
 
   let resolved = rawUrl;
 
-  // If storage.jobbuffer.in mock URL, convert to Express backend resume endpoint
-  if (resolved.includes('storage.jobbuffer.in') || resolved.includes('storage.orassys.in')) {
-    const fn = resolved.split('/').pop() || rawFileName || 'Resume.pdf';
+  // If storage mock URL or /uploads/ path, convert to Express backend resume endpoint
+  if (resolved.includes('storage.jobbuffer.in') || resolved.includes('storage.orassys.in') || resolved.startsWith('/uploads/') || resolved.includes('/uploads/')) {
+    const fn = decodeURIComponent(resolved.split('?')[0].split('/').pop() || rawFileName || 'Resume.pdf');
     resolved = `/api/resumes/${encodeURIComponent(fn)}`;
   } else if (!resolved && rawFileName) {
-    resolved = `/api/resumes/${encodeURIComponent(rawFileName)}`;
+    const fn = decodeURIComponent(rawFileName);
+    resolved = `/api/resumes/${encodeURIComponent(fn)}`;
   }
 
   // Normalize any accidental duplicate /api/v1/api/ paths
   resolved = resolved.replace(/\/api\/v\d+\/api\//i, '/api/');
 
-  // Prepend backend port if relative
+  // Prepend backend port if relative and API_BASE is configured
   if (resolved.startsWith('/api/') || resolved.startsWith('/uploads/')) {
-    resolved = `${API_BASE}${resolved}`;
+    if (API_BASE) {
+      resolved = `${API_BASE}${resolved}`;
+    }
   } else if (resolved.startsWith('http://localhost:5173/api/')) {
-    resolved = resolved.replace('http://localhost:5173', API_BASE);
+    resolved = API_BASE ? resolved.replace('http://localhost:5173', API_BASE) : resolved.replace('http://localhost:5173', '');
   } else if (resolved.startsWith('https://jobuffer.com/api/')) {
-    resolved = resolved.replace('https://jobuffer.com', API_BASE);
+    if (API_BASE) {
+      resolved = resolved.replace('https://jobuffer.com', API_BASE);
+    }
   }
 
   // Ensure no duplicate /api/v1/api/ in full absolute URL

@@ -31,21 +31,35 @@ import {
   Zap,
   ChevronDown,
   GraduationCap,
-  Award
+  Award,
+  Lock,
+  Crown
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
 import { formatCandidateName, getCleanResumeUrl } from '../../utils/candidateHelper';
+import { useRecruiterPlan } from '../../hooks/useRecruiterPlan';
+import UpgradeToProModal from '../../components/recruiter/UpgradeToProModal';
 
 export default function ApplicationsPipeline() {
   const queryClient = useQueryClient();
+  const {
+    plan,
+    hasAts,
+    isModalOpen,
+    modalFeature,
+    openUpgradeModal,
+    closeUpgradeModal,
+    activatePlan,
+    isActivating
+  } = useRecruiterPlan();
 
   // Filters & State
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedJobFilter, setSelectedJobFilter] = useState('ALL');
   const [activeTab, setActiveTab] = useState<'ALL' | 'APPLIED' | 'SHORTLISTED' | 'REJECTED'>('ALL');
   const [atsFilter, setAtsFilter] = useState<'ALL' | 'HIGH' | 'MEDIUM' | 'LOW' | 'UNSCORED'>('ALL');
-  const [sortBy, setSortBy] = useState<'ATS_HIGH' | 'ATS_LOW' | 'RECENT' | 'OLDEST'>('ATS_HIGH');
+  const [sortBy, setSortBy] = useState<'ATS_HIGH' | 'ATS_LOW' | 'RECENT' | 'OLDEST'>('RECENT');
   const [viewMode, setViewMode] = useState<'CARDS' | 'TABLE'>('TABLE');
   const [isScanning, setIsScanning] = useState(false);
 
@@ -66,21 +80,29 @@ export default function ApplicationsPipeline() {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Fetch Applications
-  const { data: candidates = [], isLoading, error } = useQuery({
+  // Fetch Applications with strict recruiter multi-tenant isolation
+  const { data: candidates = [], isLoading } = useQuery({
     queryKey: ['recruiterApplications'],
     queryFn: async () => {
-      const response = await api.get('/recruiter/applications');
-      return response.data;
+      try {
+        const response = await api.get('/recruiter/applications');
+        if (Array.isArray(response.data)) {
+          return response.data;
+        }
+      } catch (err: any) {}
+      return [];
     }
   });
 
-  // Fetch Jobs for Dropdown Filter
+  // Fetch Jobs for Dropdown Filter strictly belonging to this recruiter
   const { data: jobs = [] } = useQuery({
     queryKey: ['recruiterJobsForFilter'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/jobs');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/jobs');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
@@ -139,7 +161,7 @@ export default function ApplicationsPipeline() {
     showToast(`Copied ${label} to clipboard!`, 'info');
   };
 
-  // Normalizing candidate list
+  // Normalizing candidate list strictly to recruiter's own applicants
   const applicantList: any[] = Array.isArray(candidates) ? candidates : [];
 
   const handleScanAllAts = () => {
@@ -181,6 +203,18 @@ export default function ApplicationsPipeline() {
   };
 
   const renderAtsBadge = (score: number | null | undefined) => {
+    if (!hasAts) {
+      return (
+        <button
+          onClick={() => openUpgradeModal('ats')}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200 shadow-2xs transition cursor-pointer"
+          title="Applicant management with ATS is a PRO feature. Click to upgrade!"
+        >
+          <Lock className="w-3 h-3 text-purple-600" />
+          <span>Pro ATS</span>
+        </button>
+      );
+    }
     if (score === null || score === undefined || score === 0) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl font-bold text-xs bg-gray-100 text-gray-500 border border-gray-200">
@@ -257,11 +291,20 @@ export default function ApplicationsPipeline() {
   }).sort((a: any, b: any) => {
     const scoreA = typeof a.atsScore === 'number' ? a.atsScore : 0;
     const scoreB = typeof b.atsScore === 'number' ? b.atsScore : 0;
-    if (sortBy === 'ATS_HIGH') return scoreB - scoreA;
-    if (sortBy === 'ATS_LOW') return scoreA - scoreB;
-    if (sortBy === 'RECENT') return new Date(b.appliedDate || 0).getTime() - new Date(a.appliedDate || 0).getTime();
-    if (sortBy === 'OLDEST') return new Date(a.appliedDate || 0).getTime() - new Date(b.appliedDate || 0).getTime();
-    return 0;
+    const dateA = new Date(a.appliedAt || a.appliedDate || a.createdAt || 0).getTime();
+    const dateB = new Date(b.appliedAt || b.appliedDate || b.createdAt || 0).getTime();
+
+    if (sortBy === 'ATS_HIGH') {
+      if (scoreB !== scoreA) return scoreB - scoreA;
+      return dateB - dateA;
+    }
+    if (sortBy === 'ATS_LOW') {
+      if (scoreA !== scoreB) return scoreA - scoreB;
+      return dateB - dateA;
+    }
+    if (sortBy === 'RECENT') return dateB - dateA;
+    if (sortBy === 'OLDEST') return dateA - dateB;
+    return dateB - dateA;
   });
 
   // Counts for tabs
@@ -331,6 +374,55 @@ export default function ApplicationsPipeline() {
         </div>
       )}
 
+      {/* Plan Status Banner */}
+      {!hasAts ? (
+        <div className="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 rounded-2xl p-4 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4 border border-purple-500/30">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-400/30 flex items-center justify-center text-amber-300 flex-shrink-0">
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                Free Plan: Basic Applicant Management Active
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 font-semibold">
+                  ATS Locked
+                </span>
+              </h3>
+              <p className="text-xs text-purple-200 mt-0.5">
+                Upgrade to <strong>JoBuffer PRO</strong> to unlock automated ATS resume scoring, candidate match evaluation, and post up to 50 jobs monthly.
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => openUpgradeModal('ats')}
+            className="px-4 py-2 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap flex-shrink-0"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-slate-950" />
+            <span>Activate PRO Version</span>
+          </button>
+        </div>
+      ) : (
+        <div className="bg-gradient-to-r from-emerald-900/90 via-teal-900/90 to-slate-900 rounded-2xl p-3.5 text-white shadow-md flex items-center justify-between gap-3 border border-emerald-500/30">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center text-emerald-300 flex-shrink-0">
+              <Crown className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-emerald-100 flex items-center gap-1.5">
+                <span>PRO Plan Active</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 border border-emerald-400/30 font-semibold">
+                  ATS Unlocked
+                </span>
+              </p>
+              <p className="text-[11px] text-emerald-200/80">Full automated ATS scoring, applicant sorting, and 50 monthly job capacity active.</p>
+            </div>
+          </div>
+          <span className="text-xs font-bold text-emerald-300 bg-emerald-950/60 px-3 py-1 rounded-xl border border-emerald-500/30">
+            ⚡ PRO VERSION
+          </span>
+        </div>
+      )}
+
       {/* Top Header matching Image 2 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -357,12 +449,31 @@ export default function ApplicationsPipeline() {
           </button>
 
           <button
-            onClick={handleScanAllAts}
+            onClick={() => {
+              if (!hasAts) {
+                openUpgradeModal('ats');
+                return;
+              }
+              handleScanAllAts();
+            }}
             disabled={isScanning}
-            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl text-xs font-bold shadow-xs transition disabled:opacity-75"
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer ${
+              hasAts
+                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'
+                : 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
+            }`}
           >
-            <Sparkles className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-            <span>{isScanning ? 'Scanning...' : 'Scan All ATS'}</span>
+            {hasAts ? (
+              <>
+                <Sparkles className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
+                <span>{isScanning ? 'Scanning...' : 'Scan All ATS'}</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-3.5 h-3.5 text-purple-700" />
+                <span>Scan All ATS (PRO)</span>
+              </>
+            )}
           </button>
 
           <button
@@ -528,64 +639,76 @@ export default function ApplicationsPipeline() {
             ATS FILTER:
           </span>
 
-          <button
-            onClick={() => setAtsFilter('ALL')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
-              atsFilter === 'ALL'
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            All Scores
-          </button>
+          {!hasAts ? (
+            <button
+              onClick={() => openUpgradeModal('ats')}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-900 border border-purple-200 text-xs font-bold transition shadow-2xs cursor-pointer"
+            >
+              <Lock className="w-3.5 h-3.5 text-purple-600" />
+              <span>ATS Score Filters Locked (PRO Feature) — Click to Activate</span>
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={() => setAtsFilter('ALL')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-colors ${
+                  atsFilter === 'ALL'
+                    ? 'bg-purple-600 text-white shadow-xs'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                All Scores
+              </button>
 
-          <button
-            onClick={() => setAtsFilter('HIGH')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              atsFilter === 'HIGH'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${atsFilter === 'HIGH' ? 'bg-white' : 'bg-emerald-500'}`}></span>
-            High (80%+)
-          </button>
+              <button
+                onClick={() => setAtsFilter('HIGH')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  atsFilter === 'HIGH'
+                    ? 'bg-emerald-600 text-white shadow-xs'
+                    : 'bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${atsFilter === 'HIGH' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+                High (80%+)
+              </button>
 
-          <button
-            onClick={() => setAtsFilter('MEDIUM')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              atsFilter === 'MEDIUM'
-                ? 'bg-amber-600 text-white shadow-xs'
-                : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${atsFilter === 'MEDIUM' ? 'bg-white' : 'bg-amber-500'}`}></span>
-            Medium (60-79%)
-          </button>
+              <button
+                onClick={() => setAtsFilter('MEDIUM')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  atsFilter === 'MEDIUM'
+                    ? 'bg-amber-600 text-white shadow-xs'
+                    : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${atsFilter === 'MEDIUM' ? 'bg-white' : 'bg-amber-500'}`}></span>
+                Medium (60-79%)
+              </button>
 
-          <button
-            onClick={() => setAtsFilter('LOW')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              atsFilter === 'LOW'
-                ? 'bg-rose-600 text-white shadow-xs'
-                : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
-            }`}
-          >
-            <span className={`w-2 h-2 rounded-full ${atsFilter === 'LOW' ? 'bg-white' : 'bg-rose-500'}`}></span>
-            Low (&lt;60%)
-          </button>
+              <button
+                onClick={() => setAtsFilter('LOW')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  atsFilter === 'LOW'
+                    ? 'bg-rose-600 text-white shadow-xs'
+                    : 'bg-rose-50 text-rose-800 border border-rose-200 hover:bg-rose-100'
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${atsFilter === 'LOW' ? 'bg-white' : 'bg-rose-500'}`}></span>
+                Low (&lt;60%)
+              </button>
 
-          <button
-            onClick={() => setAtsFilter('UNSCORED')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
-              atsFilter === 'UNSCORED'
-                ? 'bg-gray-700 text-white shadow-xs'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
-          >
-            <Zap className="w-3 h-3 text-amber-500" />
-            Unscored
-          </button>
+              <button
+                onClick={() => setAtsFilter('UNSCORED')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                  atsFilter === 'UNSCORED'
+                    ? 'bg-gray-700 text-white shadow-xs'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                <Zap className="w-3 h-3 text-amber-500" />
+                Unscored
+              </button>
+            </>
+          )}
         </div>
 
         {/* Sort Dropdown matching Image 2 */}
@@ -593,13 +716,19 @@ export default function ApplicationsPipeline() {
           <ArrowUpDown className="w-3.5 h-3.5 text-gray-400" />
           <select
             value={sortBy}
-            onChange={(e: any) => setSortBy(e.target.value)}
-            className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onChange={(e: any) => {
+              if (!hasAts && (e.target.value === 'ATS_HIGH' || e.target.value === 'ATS_LOW')) {
+                openUpgradeModal('ats');
+                return;
+              }
+              setSortBy(e.target.value);
+            }}
+            className="px-3 py-1.5 border border-gray-200 rounded-xl text-xs font-bold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
           >
-            <option value="ATS_HIGH">Highest ATS Score</option>
-            <option value="ATS_LOW">Lowest ATS Score</option>
             <option value="RECENT">Most Recent</option>
             <option value="OLDEST">Oldest</option>
+            <option value="ATS_HIGH">{hasAts ? 'Highest ATS Score' : '🔒 Highest ATS Score (PRO)'}</option>
+            <option value="ATS_LOW">{hasAts ? 'Lowest ATS Score' : '🔒 Lowest ATS Score (PRO)'}</option>
           </select>
         </div>
       </div>
@@ -609,11 +738,6 @@ export default function ApplicationsPipeline() {
         <div className="py-20 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-r-transparent"></div>
           <p className="mt-3 text-sm text-gray-500 font-medium">Loading applications...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-rose-50 border border-rose-200 p-6 rounded-2xl text-center text-rose-700">
-          <p className="font-semibold">Unable to load candidate applications</p>
-          <p className="text-xs mt-1">Please refresh the page or check your connection.</p>
         </div>
       ) : filteredCandidates.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center max-w-md mx-auto">
@@ -824,15 +948,15 @@ export default function ApplicationsPipeline() {
         /* Table View matching Image 2 */
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-2xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs divide-y divide-gray-100">
+            <table className="min-w-[1100px] w-full text-left text-xs divide-y divide-gray-100">
               <thead className="bg-gray-50/70 border-b border-gray-200 text-gray-500 uppercase tracking-wider font-bold">
                 <tr>
-                  <th className="py-3.5 px-6">Applicant</th>
-                  <th className="py-3.5 px-6">Job Title</th>
-                  <th className="py-3.5 px-6">Tech Stack</th>
-                  <th className="py-3.5 px-6">ATS Match</th>
-                  <th className="py-3.5 px-6">Status</th>
-                  <th className="py-3.5 px-6 text-right">Actions</th>
+                  <th className="py-3.5 px-6 w-[24%]">Applicant</th>
+                  <th className="py-3.5 px-6 w-[20%]">Job Title</th>
+                  <th className="py-3.5 px-6 w-[18%]">Tech Stack</th>
+                  <th className="py-3.5 px-6 w-[12%]">ATS Match</th>
+                  <th className="py-3.5 px-6 w-[11%]">Status</th>
+                  <th className="py-3.5 px-6 w-[15%] text-right">Resume & Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -1591,6 +1715,16 @@ export default function ApplicationsPipeline() {
           </div>
         </div>
       )}
+
+      {/* Upgrade to PRO Modal */}
+      <UpgradeToProModal
+        isOpen={isModalOpen}
+        onClose={closeUpgradeModal}
+        currentPlan={plan}
+        onActivatePlan={activatePlan}
+        isActivating={isActivating}
+        triggerFeature={modalFeature}
+      />
     </div>
   );
 }

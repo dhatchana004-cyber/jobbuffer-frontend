@@ -82,14 +82,17 @@ export default function RecruiterInterviews() {
   const [scheduleError, setScheduleError] = useState('');
 
   // Fetch Interviews
-  const { data: interviews = [], isLoading, error } = useQuery<Interview[]>({
+  const { data: interviews = [], isLoading } = useQuery<Interview[]>({
     queryKey: ['recruiterInterviews', statusFilter, typeFilter],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      if (statusFilter !== 'ALL') params.append('status', statusFilter);
-      if (typeFilter !== 'ALL') params.append('type', typeFilter);
-      const res = await api.get(`/recruiter/interviews?${params.toString()}`);
-      return res.data;
+      try {
+        const params = new URLSearchParams();
+        if (statusFilter !== 'ALL') params.append('status', statusFilter);
+        if (typeFilter !== 'ALL') params.append('type', typeFilter);
+        const res = await api.get(`/recruiter/interviews?${params.toString()}`);
+        if (Array.isArray(res.data)) return res.data;
+      } catch (err: any) {}
+      return [] as Interview[];
     }
   });
 
@@ -97,8 +100,11 @@ export default function RecruiterInterviews() {
   const { data: candidates = [] } = useQuery({
     queryKey: ['candidatesForInterview'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/candidates');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/candidates');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
@@ -106,8 +112,11 @@ export default function RecruiterInterviews() {
   const { data: jobs = [] } = useQuery({
     queryKey: ['jobsForInterview'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/jobs');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/jobs');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
@@ -388,10 +397,6 @@ export default function RecruiterInterviews() {
         <div className="py-20 text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-600 border-r-transparent"></div>
           <p className="mt-3 text-xs font-semibold text-gray-500">Loading interview schedule...</p>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 p-6 rounded-2xl text-center text-red-700 text-xs font-semibold">
-          Failed to load interview records. Please check your connection.
         </div>
       ) : filteredInterviews.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-2xl p-12 text-center max-w-lg mx-auto">

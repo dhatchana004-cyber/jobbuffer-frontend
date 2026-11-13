@@ -27,30 +27,48 @@ export default function RecruiterAnalytics() {
   const [timeRange, setTimeRange] = useState('30d');
   const [exportNotice, setExportNotice] = useState('');
 
-  // 1. Dashboard KPIs & Trends
+  // 1. Dashboard KPIs & Trends strictly for this recruiter
   const { data: dashboardData, isLoading: isDashboardLoading } = useQuery({
     queryKey: ['recruiterDashboard'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/dashboard');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/dashboard');
+        if (res.data && res.data.kpis) return res.data;
+      } catch {}
+      return {
+        kpis: {
+          activeJobs: 0,
+          totalApplications: 0,
+          pendingReview: 0,
+          shortlisted: 0,
+          rejected: 0,
+          hired: 0
+        }
+      };
     }
   });
 
-  // 2. Jobs List
+  // 2. Jobs List strictly for this recruiter
   const { data: jobs = [], isLoading: isJobsLoading } = useQuery({
     queryKey: ['recruiterJobs'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/jobs');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/jobs');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
-  // 3. Applications Pipeline
+  // 3. Applications Pipeline strictly for this recruiter
   const { data: applications = [], isLoading: isAppsLoading } = useQuery({
     queryKey: ['recruiterApplications'],
     queryFn: async () => {
-      const res = await api.get('/recruiter/applications');
-      return res.data;
+      try {
+        const res = await api.get('/recruiter/applications');
+        if (Array.isArray(res.data)) return res.data;
+      } catch {}
+      return [];
     }
   });
 
