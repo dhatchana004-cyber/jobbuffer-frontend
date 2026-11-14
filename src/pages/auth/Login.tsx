@@ -42,13 +42,19 @@ export default function Login() {
       const normEmail = email.toLowerCase().trim();
       const response = await authService.login({ email: normEmail, password });
       
-      const role = (response.user?.role || '').toUpperCase();
+      const role = (response?.user?.role || '').toUpperCase();
       
-      // Strict role-based navigation: Admin -> /admin/dashboard, Recruiter -> /recruiter/dashboard
-      if (role === 'ADMIN' || normEmail === 'admin@mail.com' || normEmail.startsWith('admin@')) {
+      // Strict role validation: Only ADMIN and RECRUITER allowed in web portal
+      if (role === 'ADMIN' || normEmail === 'admin@mail.com' || normEmail === 'admin') {
         navigate('/admin/dashboard');
-      } else {
+      } else if (role === 'RECRUITER') {
         navigate('/recruiter/dashboard');
+      } else if (role === 'CANDIDATE') {
+        authService.logout();
+        setError('This portal is strictly for Recruiters & Administrators. Candidates please use the JoBuffer Mobile App.');
+      } else {
+        authService.logout();
+        setError('Invalid account credentials or unauthorized role.');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -137,10 +143,11 @@ export default function Login() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address or Username</label>
               <input
-                type="email"
+                type="text"
                 required
+                placeholder="e.g. admin@mail.com or tamil@gmail.com"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all outline-none"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}

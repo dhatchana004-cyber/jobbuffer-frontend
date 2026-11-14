@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { 
   Bell, 
@@ -37,6 +37,27 @@ export default function DashboardLayout({ role, navItems }: DashboardLayoutProps
   const [profileOpen, setProfileOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const navigate = useNavigate();
+
+  // Route Guard: enforce authentication and role access
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUserStr = localStorage.getItem('user');
+    if (!token || !storedUserStr) {
+      navigate('/login', { replace: true });
+      return;
+    }
+    try {
+      const storedUser = JSON.parse(storedUserStr);
+      const userRole = (storedUser?.role || '').toLowerCase();
+      if (role === 'admin' && userRole !== 'admin') {
+        navigate('/login', { replace: true });
+      } else if (role === 'recruiter' && userRole !== 'recruiter' && userRole !== 'admin') {
+        navigate('/login', { replace: true });
+      }
+    } catch {
+      navigate('/login', { replace: true });
+    }
+  }, [role, navigate]);
 
   const recruiterPlan = useRecruiterPlan({ enabled: role === 'recruiter' });
 
