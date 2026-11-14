@@ -311,7 +311,7 @@ export default function Settings() {
         </div>
 
         {/* Settings Body Container */}
-        <div className="flex-1 bg-white rounded-2xl shadow-xs border border-gray-200 p-6 md:p-8">
+        <div className="flex-1 bg-white rounded-2xl shadow-xs border border-gray-200 p-3.5 sm:p-6 md:p-8">
           {/* General Tab */}
           {activeTab === 'general' && (
             <div className="space-y-6">
@@ -512,57 +512,65 @@ export default function Settings() {
             <div className="space-y-6">
               <div className="border-b border-gray-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                    <CreditCard className="w-5 h-5 text-amber-500" />
-                    Subscription Plans & Monetization Control
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <CreditCard className="w-5 h-5 text-amber-500 shrink-0" />
+                    <span>Subscription Plans & Monetization Control</span>
                   </h2>
                   <p className="text-xs text-gray-500 mt-0.5">
                     Configure PRO Version activation amounts, quotas, and payment gateways for both Candidate Mobile App and Recruiter Web Portal.
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs flex items-center gap-1.5">
-                    <Smartphone className="w-3.5 h-3.5 text-blue-600" />
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-blue-50 text-blue-700 border border-blue-200 shadow-2xs flex items-center gap-1.5 whitespace-nowrap">
+                    <Smartphone className="w-3.5 h-3.5 text-blue-600 shrink-0" />
                     App Pro: ₹{Number(candidate1MonthPrice).toLocaleString()} / mo
                   </span>
-                  <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs flex items-center gap-1.5">
-                    <Crown className="w-3.5 h-3.5 text-purple-600" />
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-purple-50 text-purple-700 border border-purple-200 shadow-2xs flex items-center gap-1.5 whitespace-nowrap">
+                    <Crown className="w-3.5 h-3.5 text-purple-600 shrink-0" />
                     Recruiter Pro: ₹{Number(recruiter1MonthPrice).toLocaleString()} / mo
                   </span>
                 </div>
               </div>
 
               {/* Sub-Tabs: Candidate Mobile App vs Recruiter Web Portal */}
-              <div className="flex border-b border-gray-200 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1.5 bg-slate-100/90 rounded-2xl border border-slate-200/80">
                 <button
                   type="button"
                   onClick={() => setBillingSubTab('app_candidate')}
-                  className={`pb-3 px-4 text-xs font-bold flex items-center gap-2 border-b-2 transition cursor-pointer ${
+                  className={`w-full py-2.5 px-3.5 text-xs font-bold flex items-center justify-between gap-2 rounded-xl transition cursor-pointer ${
                     billingSubTab === 'app_candidate'
-                      ? 'border-blue-600 text-blue-600 bg-blue-50/40 rounded-t-lg'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'bg-white text-blue-700 shadow-xs border border-blue-200 font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
-                  <Smartphone className="w-4 h-4 text-blue-600" />
-                  Candidate Mobile App PRO Plan
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                    Active on Mobile App
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`p-1 rounded-lg shrink-0 ${billingSubTab === 'app_candidate' ? 'bg-blue-100 text-blue-700' : 'bg-slate-200/80 text-slate-600'}`}>
+                      <Smartphone className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="truncate text-left">Candidate Mobile App Plan</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    Active
                   </span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setBillingSubTab('web_recruiter')}
-                  className={`pb-3 px-4 text-xs font-bold flex items-center gap-2 border-b-2 transition cursor-pointer ${
+                  className={`w-full py-2.5 px-3.5 text-xs font-bold flex items-center justify-between gap-2 rounded-xl transition cursor-pointer ${
                     billingSubTab === 'web_recruiter'
-                      ? 'border-purple-600 text-purple-600 bg-purple-50/40 rounded-t-lg'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                      ? 'bg-white text-purple-700 shadow-xs border border-purple-200 font-black'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
-                  <Crown className="w-4 h-4 text-purple-600" />
-                  Recruiter Web Portal PRO Plan
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200">
-                    Recruiter Portal
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`p-1 rounded-lg shrink-0 ${billingSubTab === 'web_recruiter' ? 'bg-purple-100 text-purple-700' : 'bg-slate-200/80 text-slate-600'}`}>
+                      <Crown className="w-3.5 h-3.5" />
+                    </div>
+                    <span className="truncate text-left">Recruiter Web Portal Plan</span>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded-full text-[10px] font-black bg-purple-100 text-purple-800 border border-purple-200">
+                    Portal
                   </span>
                 </button>
               </div>
@@ -626,18 +634,18 @@ export default function Settings() {
               {billingSubTab === 'app_candidate' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
                   {/* Form Controls */}
-                  <div className="lg:col-span-2 bg-white rounded-2xl border border-blue-200 p-5 sm:p-6 shadow-xs space-y-6">
-                    <div className="border-b border-gray-100 pb-3 flex items-center justify-between">
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-blue-200 p-4 sm:p-6 shadow-xs space-y-5">
+                    <div className="border-b border-gray-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <h3 className="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-                          <Smartphone className="w-4 h-4 text-blue-600" />
-                          Set Candidate Mobile App PRO Version Amounts (1, 3 & 6 Months)
+                          <Smartphone className="w-4 h-4 text-blue-600 shrink-0" />
+                          <span>Candidate Mobile App PRO Amounts (1, 3 & 6 Months)</span>
                         </h3>
                         <p className="text-xs text-gray-500 mt-0.5">
                           Configure exact pricing for 1-Month, 3-Month, and 6-Month subscription options shown to candidates in the mobile app.
                         </p>
                       </div>
-                      <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-700 uppercase">
+                      <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[10px] font-black bg-blue-100 text-blue-700 uppercase shrink-0">
                         Mobile App Sync
                       </span>
                     </div>
@@ -818,16 +826,16 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="pt-3 flex items-center justify-between border-t border-gray-100">
+                    <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-gray-100">
                       <p className="text-xs text-gray-500">
-                        ⚡ Updates propagate instantly to all mobile app candidates via <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded font-mono">/api/candidates/pricing</code>
+                        ⚡ Updates propagate instantly to all mobile app candidates via <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded font-mono break-all">/api/candidates/pricing</code>
                       </p>
 
                       <button
                         type="button"
                         disabled={savePricingMutation.isPending}
                         onClick={() => savePricingMutation.mutate()}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {savePricingMutation.isPending ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
@@ -983,15 +991,20 @@ export default function Settings() {
               {billingSubTab === 'web_recruiter' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-2">
                   {/* Form Controls */}
-                  <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-5 sm:p-6 shadow-xs space-y-6">
-                    <div className="border-b border-gray-100 pb-3">
-                      <h3 className="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
-                        <Crown className="w-4 h-4 text-purple-600" />
-                        Set Recruiter Web Portal PRO Version Amounts (1, 3 & 6 Months)
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Configure pricing tiers for 1-Month, 3-Month, and 6-Month subscription options shown to recruiters on the Web Portal.
-                      </p>
+                  <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-200 p-4 sm:p-6 shadow-xs space-y-5">
+                    <div className="border-b border-gray-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <h3 className="font-bold text-gray-900 text-sm sm:text-base flex items-center gap-2">
+                          <Crown className="w-4 h-4 text-purple-600 shrink-0" />
+                          <span>Recruiter Web Portal PRO Amounts (1, 3 & 6 Months)</span>
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Configure pricing tiers for 1-Month, 3-Month, and 6-Month subscription options shown to recruiters on the Web Portal.
+                        </p>
+                      </div>
+                      <span className="self-start sm:self-auto px-2.5 py-1 rounded-full text-[10px] font-black bg-purple-100 text-purple-700 uppercase shrink-0">
+                        Web Portal Sync
+                      </span>
                     </div>
 
                     {/* Tier 1: 1 Month Plan */}
@@ -1211,14 +1224,14 @@ export default function Settings() {
                       </div>
                     </div>
 
-                    <div className="pt-2 flex items-center justify-between border-t border-gray-100">
+                    <div className="pt-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-gray-100">
                       <div className="flex items-center gap-2">
                         <input
                           type="checkbox"
                           id="atsToggle"
                           checked={atsFeatureEnabled}
                           onChange={(e) => setAtsFeatureEnabled(e.target.checked)}
-                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer shrink-0"
                         />
                         <label htmlFor="atsToggle" className="text-xs font-bold text-gray-800 cursor-pointer">
                           Enable Full ATS Applicant Management (AI Scoring & Filters) in PRO
@@ -1229,7 +1242,7 @@ export default function Settings() {
                         type="button"
                         disabled={savePricingMutation.isPending}
                         onClick={() => savePricingMutation.mutate()}
-                        className="flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer"
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold text-xs shadow-md transition disabled:opacity-50 cursor-pointer shrink-0"
                       >
                         {savePricingMutation.isPending ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
