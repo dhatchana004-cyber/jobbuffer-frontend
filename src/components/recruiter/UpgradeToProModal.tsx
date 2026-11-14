@@ -85,6 +85,7 @@ export default function UpgradeToProModal({
   pricing: propPricing
 }: UpgradeToProModalProps) {
   const [step, setStep] = useState<'select' | 'payment' | 'authorizing' | 'success'>('select');
+  const [selectedDuration, setSelectedDuration] = useState<'1_MONTH' | '3_MONTH' | '6_MONTH'>('1_MONTH');
   const [paymentMethod, setPaymentMethod] = useState<'upi' | 'card' | 'netbanking' | 'wallet' | 'sandbox'>('upi');
   
   // UPI states
@@ -146,8 +147,6 @@ export default function UpgradeToProModal({
 
   const isPro = currentPlan === 'PRO';
   const activeFeature = featureLocked || triggerFeature;
-
-  const [selectedDuration, setSelectedDuration] = useState<'1_MONTH' | '3_MONTH' | '6_MONTH'>('1_MONTH');
 
   const activePricing: SubscriptionPricingConfig = propPricing || fetchedPricing || {
     proPrice: 2499,
