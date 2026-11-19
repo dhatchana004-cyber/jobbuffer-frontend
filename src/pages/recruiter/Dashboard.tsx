@@ -155,12 +155,12 @@ export default function RecruiterDashboard() {
   }
 
   const kpis = {
-    activeJobs: dashboardData?.kpis?.activeJobs || (Array.isArray(jobs) && jobs.length > 0 ? jobs.length : 7),
-    totalApplications: dashboardData?.kpis?.totalApplications || (Array.isArray(applications) && applications.length > 0 ? applications.length : 10),
-    pendingReview: dashboardData?.kpis?.pendingReview !== undefined ? dashboardData.kpis.pendingReview : 5,
-    shortlisted: dashboardData?.kpis?.shortlisted !== undefined ? dashboardData.kpis.shortlisted : 4,
+    activeJobs: dashboardData?.kpis?.activeJobs !== undefined ? dashboardData.kpis.activeJobs : (Array.isArray(jobs) ? jobs.length : 0),
+    totalApplications: dashboardData?.kpis?.totalApplications !== undefined ? dashboardData.kpis.totalApplications : (Array.isArray(applications) ? applications.length : 0),
+    pendingReview: dashboardData?.kpis?.pendingReview !== undefined ? dashboardData.kpis.pendingReview : 0,
+    shortlisted: dashboardData?.kpis?.shortlisted !== undefined ? dashboardData.kpis.shortlisted : 0,
     rejected: dashboardData?.kpis?.rejected !== undefined ? dashboardData.kpis.rejected : 0,
-    hired: dashboardData?.kpis?.hired !== undefined ? dashboardData.kpis.hired : 1
+    hired: dashboardData?.kpis?.hired !== undefined ? dashboardData.kpis.hired : 0
   };
   const charts = dashboardData?.charts || { applicationData: [], funnelData: [] };
   const applicationData = charts.applicationData || [];
