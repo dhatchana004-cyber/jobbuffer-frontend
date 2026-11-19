@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Eye, 
@@ -32,6 +32,17 @@ export default function Login() {
   const [forgotLoading, setForgotLoading] = useState(false);
   const [forgotError, setForgotError] = useState('');
   const [forgotSuccessMsg, setForgotSuccessMsg] = useState('');
+
+  // Enforce empty input states on mount & block aggressive browser autofill
+  useEffect(() => {
+    setEmail('');
+    setPassword('');
+    const timer = setTimeout(() => {
+      setEmail('');
+      setPassword('');
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,7 +147,11 @@ export default function Login() {
             <p className="text-gray-500 mt-2">Log in to your account.</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6" autoComplete="off">
+            {/* Hidden dummy fields to capture aggressive browser autofill */}
+            <input type="text" name="fake_user_capture" tabIndex={-1} className="hidden" autoComplete="off" />
+            <input type="password" name="fake_pass_capture" tabIndex={-1} className="hidden" autoComplete="off" />
+
             {error && (
               <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm border border-red-200">
                 {error}
@@ -146,8 +161,10 @@ export default function Login() {
               <label className="block text-sm font-medium text-gray-700 mb-2">Email Address or Username</label>
               <input
                 type="text"
+                name="jb_auth_identity"
+                id="jb_auth_identity"
+                autoComplete="off"
                 required
-                placeholder="e.g. admin@mail.com or tamil@gmail.com"
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all outline-none"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -168,6 +185,9 @@ export default function Login() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="jb_auth_secret"
+                  id="jb_auth_secret"
+                  autoComplete="new-password"
                   required
                   className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all outline-none"
                   value={password}
@@ -282,7 +302,7 @@ export default function Login() {
 
             {/* Step 1: Request Email */}
             {forgotStep === 1 && (
-              <form onSubmit={handleSendResetOtp} className="space-y-4">
+              <form onSubmit={handleSendResetOtp} className="space-y-4" autoComplete="off">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Registered Email</label>
                   <div className="relative">
@@ -290,7 +310,7 @@ export default function Login() {
                     <input
                       type="email"
                       required
-                      placeholder="e.g. recruiter@company.com"
+                      autoComplete="off"
                       value={forgotEmail}
                       onChange={(e) => setForgotEmail(e.target.value)}
                       className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 outline-none"
@@ -317,14 +337,14 @@ export default function Login() {
 
             {/* Step 2: Enter OTP & New Password */}
             {forgotStep === 2 && (
-              <form onSubmit={handleConfirmResetPassword} className="space-y-4">
+              <form onSubmit={handleConfirmResetPassword} className="space-y-4" autoComplete="off">
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1.5">Verification Code (OTP)</label>
                   <input
                     type="text"
                     required
                     maxLength={6}
-                    placeholder="Enter 4 or 6-digit OTP"
+                    autoComplete="one-time-code"
                     value={forgotOtp}
                     onChange={(e) => setForgotOtp(e.target.value)}
                     className="w-full px-4 py-2.5 text-center tracking-widest text-lg font-bold rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 outline-none font-mono"
@@ -338,7 +358,7 @@ export default function Login() {
                     <input
                       type={showForgotNewPassword ? 'text' : 'password'}
                       required
-                      placeholder="At least 6 characters"
+                      autoComplete="new-password"
                       value={forgotNewPassword}
                       onChange={(e) => setForgotNewPassword(e.target.value)}
                       className="w-full pl-4 pr-10 py-2.5 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-blue-600 outline-none"

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Eye, 
@@ -65,6 +65,23 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Clear all fields on mount to eliminate browser autofill
+  useEffect(() => {
+    setName('');
+    setEmail('');
+    setPhone('');
+    setDesignation('');
+    setPassword('');
+    const timer = setTimeout(() => {
+      setName('');
+      setEmail('');
+      setPhone('');
+      setDesignation('');
+      setPassword('');
+    }, 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Validation
   const validateStep1 = () => {
@@ -223,7 +240,11 @@ export default function Register() {
 
             {/* Step 1 Form: Recruiter Personal & Credentials */}
             {currentStep === 1 && (
-              <form onSubmit={handleNextStep} className="space-y-4">
+              <form onSubmit={handleNextStep} className="space-y-4" autoComplete="off">
+                {/* Hidden dummy fields to capture aggressive browser autofill */}
+                <input type="text" name="fake_reg_usr" tabIndex={-1} className="hidden" autoComplete="off" />
+                <input type="password" name="fake_reg_pwd" tabIndex={-1} className="hidden" autoComplete="off" />
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Full Name */}
                   <div>
@@ -236,6 +257,9 @@ export default function Register() {
                       </div>
                       <input
                         type="text"
+                        name="reg_fullname"
+                        id="reg_fullname"
+                        autoComplete="off"
                         required
                         className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                         value={name}
@@ -255,6 +279,9 @@ export default function Register() {
                       </div>
                       <input
                         type="email"
+                        name="reg_work_email"
+                        id="reg_work_email"
+                        autoComplete="off"
                         required
                         className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                         value={email}
@@ -276,6 +303,9 @@ export default function Register() {
                       </div>
                       <input
                         type="tel"
+                        name="reg_phone"
+                        id="reg_phone"
+                        autoComplete="off"
                         required
                         className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                         value={phone}
@@ -295,6 +325,9 @@ export default function Register() {
                       </div>
                       <input
                         type="text"
+                        name="reg_designation"
+                        id="reg_designation"
+                        autoComplete="off"
                         required
                         className="w-full pl-10 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                         value={designation}
@@ -315,6 +348,9 @@ export default function Register() {
                     </div>
                     <input
                       type={showPassword ? 'text' : 'password'}
+                      name="reg_pwd"
+                      id="reg_pwd"
+                      autoComplete="new-password"
                       required
                       className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition-all"
                       value={password}
@@ -343,7 +379,7 @@ export default function Register() {
 
             {/* Step 2 Form: Company Information */}
             {currentStep === 2 && (
-              <form onSubmit={handleRegister} className="space-y-4">
+              <form onSubmit={handleRegister} className="space-y-4" autoComplete="off">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Company Name */}
                   <div>
